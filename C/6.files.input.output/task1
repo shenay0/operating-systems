@@ -1,0 +1,33 @@
+ #include <fcntl.h>
+  2 #include <unistd.h>
+  3 #include <stdlib.h>
+  4 #include <err.h>
+  5 
+  6 int main(void) {
+  7     int fd1;
+  8     int fd2;
+  9     char buffer[1024];
+ 10 
+ 11 
+ 12     fd1=open("a.txt",O_RDONLY);
+ 13     if(fd1 == -1) {
+ 14         err(1, "Couldnt open a.txt");
+ 15     }
+ 16 
+ 17     fd2=open("b.txt",O_WRONLY|O_CREAT|O_TRUNC, 0644);
+ 18     if(fd2==-1) {
+ 19         err(1,"couldnt open b.txt");
+ 20     }
+ 21     int bytes;
+ 22     while((bytes=read(fd1,buffer,sizeof(buffer))) != 0){
+ 23         write(fd2,buffer,bytes);
+ 24     }
+ 25 
+ 26     close(fd1);
+ 27     close(fd2);
+ 28     exit(0);
+ 29 
+ 30 
+ 31 }
+~
+
