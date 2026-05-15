@@ -1,0 +1,125 @@
+#include <string.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <err.h>
+
+int main(int argc, char* args[])
+{
+    if (argc != 3) {
+        errx(1, "Invalid number of arguments");
+    }
+
+    int fd;
+    if ((fd = open(args[2], O_RDONLY)) == -1) {
+        err(1, "Could not open binary file");
+    }
+
+    uint16_t arr[10000];
+
+    ssize_t size = read(fd, arr, sizeof(arr));
+    if (size == -1) {
+        close(fd);
+        err(1, "Error while reading");
+    }
+
+    if (size % sizeof(uint16_t) != 0) {
+        close(fd);
+        errx(1, "File is not properly aligned");
+    }
+
+    int count = size / sizeof(uint16_t);
+
+    if (strcmp(args[1], "--min") == 0) {
+        if (count == 0) {
+            close(fd);
+            errx(1, "Empty file");
+        }
+
+        uint16_t x = UINT16_MAX;
+
+        for (int i = 0; i < count; i++) {
+            if (arr[i] < x) {
+                x = arr[i];
+            }
+        }
+
+        char buff[100];
+        int wrSize = snprintf(buff, sizeof(buff), "%u\n", x);
+
+        if (wrSize < 0 || wrSize >= (int)sizeof(buff)) {
+            close(fd);
+            errx(1, "snprintf failed");
+        }
+
+        if (write(1, buff, wrSize) != wrSize) {
+            close(fd);
+            err(1, "write");
+        }
+
+    } else if (strcmp(args[1], "--max") == 0) {
+        if (count == 0) {
+            close(fd);
+            errx(1, "Empty file");
+        }
+
+        uint16_t x = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (arr[i] > x) {
+                x = arr[i];
+            }
+        }
+
+        char buff[100];
+        int wrSize = snprintf(buff, sizeof(buff), "%u\n", x);
+
+        if (wrSize < 0 || wrSize >= (int)sizeof(buff)) {
+            close(fd);
+            errx(1, "snprintf failed");
+        }
+
+        if (write(1, buff, wrSize) != wrSize) {
+            close(fd);
+            err(1, "write");
+        }
+
+    } else if (strcmp(args[1], "--print") == 0) {
+        char str[100000];
+        int index = 0;
+
+        for (int i = 0; i < count; i++) {
+            char num[10];
+
+            int wrSize = snprintf(num, sizeof(num), "%u\n", arr[i]);
+
+            if (wrSize < 0 || wrSize >= (int)sizeof(num)) {
+                close(fd);
+                errx(1, "snprintf failed");
+            }
+
+            if (index + wrSize > (int)sizeof(str)) {
+                close(fd);
+                errx(1, "Output buffer too small");
+            }
+
+            for (int j = 0; j < wrSize; j++) {
+                str[index++] = num[j];
+            }
+        }
+
+        if (write(1, str, index) != index) {
+            close(fd);
+            err(1, "write");
+        }
+
+    } else {
+        close(fd);
+        errx(1, "Unknown command");
+    }
+
+    close(fd);
+    exit(0);
+}

@@ -1,0 +1,52 @@
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <err.h>
+#include <stdio.h>
+
+int main(int argc, char* args[]){
+    if(argc != 2) {
+        errx(1, "Binary file needed as argument.");
+    }
+
+
+    int fd = open(args[1], O_RDONLY);
+    if (fd == -1){
+        err(1, "Coulnt open file");
+    }
+
+    unsigned char buff[10000];
+    int size;
+    unsigned char max = 0;
+
+    while((size=read(fd,buff,sizeof(buff))) > 0){
+        for(int i = 0; i < size; i++){
+            if(buff[i] > max){
+                max = buff[i];
+            }
+        }
+    }
+
+    if(size != 0) {
+        //close
+        err(1, "Error while reading from file");
+    }
+
+    char res[100];
+
+    int len = snprintf(res, sizeof(res), "%u\n", max);
+
+    if(len >= (int)sizeof(res)){
+        //close
+        err(1, "snprintf failed");
+    }
+
+    if(write(1,res,len) != len) {
+        //close
+        err(1,"Write failed");
+
+    }
+
+    close(fd);
+    exit(0);
+}

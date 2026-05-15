@@ -1,0 +1,39 @@
+#include <fcntl.h>
+#include <err.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int main(int argc, char* args[]) {
+    if(argc != 3) {
+        errx(1, "Wrong number of args");
+    }
+
+    int fd1 = open(args[1], O_RDONLY);
+    int fd2 = open(args[2], O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    if(fd1 == -1 || fd2 ==-1) {
+        close(fd1);
+        close(fd2);
+        err(1, "Error while opening files");
+    }
+
+    char buff[4096];
+    int size;
+
+    while((size=read(fd1, buff,sizeof(buff))) >0){
+        if(write(fd2,buff,size) < 0){
+            close(fd1);
+            close(fd2);
+            err(1, "Error while writing");
+        }
+    }
+
+    if(size != 0) {
+        //close
+
+        err(1, "Error while reading");
+    }
+
+    close(fd1);
+    close(fd2);
+    exit(0);
+    }

@@ -1,0 +1,33 @@
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <err.h>
+
+
+
+int main(int argc, char * args[]){
+    if(argc < 2) {
+        errx(1, "not enough arguments");
+    }
+
+
+    for(int i = 1; i < argc; i++){
+        int fd = open(args[i], O_RDONLY);
+        if(fd < 0) {
+            err(1, "Couldnt open file no %d", i);
+        }
+
+        char buff[4026];
+        int size;
+
+        while((size=read(fd,buff,sizeof(buff))) > 0){
+            write(1, buff, size);
+
+        }
+        char c = '\n';
+        write(1,&c, sizeof(c));
+        close(fd);
+    }
+
+    exit(0);
+}
