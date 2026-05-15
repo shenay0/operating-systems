@@ -1,0 +1,60 @@
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <err.h>
+#include <stdio.h>
+#include <stdbool.h>
+int main(int argc, char* args[]) {
+
+
+    if(argc != 2 ){
+        err(1,"Two arguments needed.\n");
+    }
+
+    int lines = 0;
+    int words = 0;
+    int bytes = 0;
+
+
+    int fd=open(args[1], O_RDONLY);
+
+    if( fd < 0) {
+        err(1, "Cannot open file");
+    }
+
+    char c;
+    bool isWord = false;
+    while(read(fd,&c,sizeof(c)) == sizeof(c)){
+        bytes++;
+
+        if(c == '\n'){
+            lines++;
+            if(isWord){
+                words++;
+            }
+        } else if(c == ' ') {
+            if(isWord){
+                words++;
+            }
+        }
+        else{
+            isWord = true;
+        }
+    }
+
+    char lineC[100];
+    int a=snprintf(lineC,sizeof(lineC), "Number of lines:%d\n", lines);
+
+    char wordC[100];
+    int b=snprintf(wordC,sizeof(wordC), "Number of words:%d\n", words);
+
+    char bytesC[10000];
+    int k=snprintf(bytesC,sizeof(bytesC), "Number of bytes:%d\n",bytes);
+
+
+    write(1, wordC, b);
+    write(1, lineC, a);
+    write(1, bytesC, k);
+    close(fd);
+    exit(0);
+}

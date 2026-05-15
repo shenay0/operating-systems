@@ -1,0 +1,82 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <err.h>
+
+
+
+int main(int argc, char* args[]){
+    if(argc !=3 ){
+        errx(1,"Three arguments needed.\n");
+    }
+
+
+
+    int fd1,fd2;
+
+    if((fd1=open(args[1],O_RDWR)) < 0){
+        err(1,"Couldnt open file.");
+    }
+
+    if((fd2=open(args[2],O_RDWR)) < 0){
+        close(fd1);
+        err(1,"Couldnt open file.");
+
+    }
+
+
+    int temp=open("temp.txt", O_CREAT |O_RDWR | O_TRUNC ,0644);
+
+    char buff[4096];
+    int size;
+
+    while((size=read(fd1,buff,sizeof(buff))) > 0){
+        if(write(temp,buff,size) < 0){
+            err(1, "Error while writing to temp file");
+        }
+    }
+
+    if(size != 0){
+        err(1,"Error while reading from first file");
+    }
+
+    if(lseek(fd1, 0, SEEK_SET) == -1){
+        err(1, "Error while seeking");
+    }
+
+    while((size=read(fd2,buff,sizeof(buff))) > 0){
+        if(write(fd1, buff,size) < 0) {
+            err(1,"Error while writing");
+        }
+
+    }
+
+    if(size != 0) {
+        err(1,"Error while reading from second file");
+    }
+
+    if(lseek(fd2,0,SEEK_SET) == -1){
+        close(fd1); // need to close before evry err
+        close(fd2);
+        close(temp);
+        err(1,"Error while seeking");
+    }
+
+    if(lseek(temp,0,SEEK_SET) == -1){
+        err(1,"Error while seeking");
+    }
+    while((size=read(temp, buff, sizeof(buff))) > 0) {
+        if(write(fd2, buff,size) < 0){
+            err(1,"Error while writing");
+        }
+    }
+
+    if(size != 0) {
+        err(1, "Error while reading.");
+    }
+
+    close(fd1);
+    close(fd2);
+    close(temp);
+    exit(0);
+}

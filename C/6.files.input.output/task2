@@ -1,0 +1,31 @@
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <err.h>
+
+int main(int argc, char* args[]){
+    int fd;
+    int i = 0;
+    char c;
+    if((fd=open("file.txt",O_RDONLY)) == -1){
+        err(1, "Couldnt open file");
+    }
+
+
+    while(read(fd, &c, sizeof(c)) == sizeof(c)){
+        if(write(1, &c,sizeof(c)) < 0){
+            err(1,"Couldnt write");
+        }
+
+        if(c == '\n'){
+            i = i + 1;
+        }
+
+        if(i == 10){
+            break;
+        }
+    }
+
+    close(fd);
+    exit(0);
+}
