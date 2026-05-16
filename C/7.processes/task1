@@ -1,0 +1,20 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <err.h>
+
+int main(int argc, char* args []){
+    if (argc != 2) {
+        errx(1,"Command arg needed");
+    }
+
+    if (execlp("date", args[1], (char*) NULL) == -1){
+        err(1,"Couldnt execute command");
+    }
+    else{
+        char buff[]="This line will never be printed";
+
+        write(1,buff,sizeof(buff));
+    }
+
+    exit(0);
+}

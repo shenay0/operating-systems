@@ -1,0 +1,15 @@
+#include <stdlib.h>
+#include <err.h>
+#include <unistd.h>
+
+int main(int argc, char* args[]) {
+    if(argc != 3){
+        errx(1,"Invalid arguments");
+    }
+
+    if(execlp("ls", args[1],args[2], (char *) NULL) == -1) {
+        err(1,"Couldnt execute command");
+    }
+
+    exit(0);
+}

@@ -1,0 +1,29 @@
+#include <stdlib.h>
+#include <err.h>
+#include <unistd.h>
+
+int main(void) {
+    char buff[]= "Parent process started.\n";
+
+    write(1,buff,sizeof(buff));
+
+    int pid = fork();
+    if(pid == -1){
+        err(1,"Couldnt fork");
+    }
+
+    char child[] = "Im the child.\n";
+    char parent[] = "Im the parent.\n";
+
+    for(int i = 0; i < 1000; i++){
+        if(pid == 0){
+            write(1,child,sizeof(child));
+        }
+        else{
+            write(1,parent, sizeof(parent));
+        }
+    }
+
+    exit(0);
+
+}

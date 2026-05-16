@@ -1,0 +1,20 @@
+#include <stdlib.h>
+#include <err.h>
+#include <unistd.h>
+
+int main(void){
+
+    char* args[3];
+    char comm[10] = "sleep";
+    char arg[10] = "60";
+    args[0] = comm;
+    args[1] = arg;
+    args[2] = NULL;
+
+    if(execvp("sleep", args) == -1){
+        err(1, "Coulndt execute command");
+    }
+
+    exit(0);
+
+}
