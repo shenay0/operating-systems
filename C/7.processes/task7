@@ -1,0 +1,38 @@
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <err.h>
+#include <stdio.h>
+
+int main(int argc, char* args[]){
+    if(argc != 4) {
+        errx(1,"Invalid arguments");
+    }
+
+    for(int i = 1; i <= 3; i++){
+        int pid = fork();
+
+        if(pid == -1) {
+            err(1, "Couldnt fork process number %d\n", i);
+        }
+
+        if(pid == 0){
+            if(execlp(args[i], args[i], (char*) NULL) == -1){
+                err(1,"Couldnt execute command.\n");
+            }
+        }
+
+        int status;
+        pid_t child = wait(&status);
+        if(child == -1){
+            err(1, "Couldnt wait");
+        }
+
+        char buff[1000];
+        int size = snprintf(buff, sizeof(buff), "PID: %u \nExit status:%d\n", child, WEXITSTATUS(status));
+        write(1, buff, size);
+    }
+
+    exit(0);
+}

@@ -1,0 +1,68 @@
+#include <stdlib.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <err.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+int main(int argc, char* args[]){
+    if(argc != 2) {
+        errx(1, "Invalid arguments.");
+    }
+
+    int pid = fork();
+    if(pid == -1){
+        err(1, "Couldnt fork");
+    }
+
+    if(pid == 0) {
+        int fd;
+        if((fd = open(args[1], O_CREAT|O_TRUNC|O_WRONLY, 0644)) == -1){
+            err(1, "Couldnt open file");
+        }
+
+        char buff[]= "foobar";
+        if(write(fd, buff, sizeof(buff)) == -1){
+            err(1,"Couldnt write to file");
+        }
+        close(fd);
+        exit(0);
+    }
+    else{
+        int status;
+        int child = wait(&status);
+
+        if(child == -1){
+            err(1,"Couldnt wait for child");
+        }
+
+        if(!WIFEXITED(status)){
+            err(1,"Child terminated");
+        }
+        else if(WEXITSTATUS(status) != 0){
+            err(1, "Proccess ended unsuccessfully.");
+        }
+
+        int fd = open(args[1], O_RDONLY);
+        if(fd == -1){
+            err(1, "Couldnt open file");
+        }
+
+        char buff[2];
+        int size;
+        while((size=read(fd, buff, sizeof(buff))) > 0){
+            if(write(1,buff,size) == -1 ||
+            write(1," ", sizeof(char)) == -1){
+                err(1,"Error while writing to console.");
+            }
+
+        }
+
+        if(size != 0){
+            err(1, "Issue while reading the file");
+        }
+
+        close(fd);
+        exit(0);
+    }
+}

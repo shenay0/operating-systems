@@ -1,0 +1,36 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <err.h>
+#include <wait.h>
+
+int main(void){
+
+    pid_t pid = fork();
+
+    if(pid == -1){
+        err(1,"couldnt fork");
+    }
+
+    char child[] = "Im kid\n";
+    char parent[] = "Im parent\n";
+
+    if(pid == 0) {
+        for(int i = 0; i < 100; i++){
+            write(1, child, sizeof(child));
+        }
+    } else {
+        int status;
+        int child_pid = wait(&status);
+
+        if(child_pid == -1) {
+            err(1, "Couldnt wait");
+        }
+
+        for(int i = 0; i < 100; i++){
+            write(1, parent, sizeof(parent));
+        }
+    }
+
+    exit(0);
+}
+

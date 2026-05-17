@@ -1,0 +1,55 @@
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <err.h>
+#include <stdio.h>
+
+int main(int argc, char* args[]){
+
+        if(argc < 2){
+            errx(1, "Invalid arguments");
+        }
+
+        int success = 0;
+        int fail = 0;
+
+        for(int i=1; i < argc; i++){
+            int pid = fork();
+
+            if(pid == -1){
+                fail++;
+                continue;
+            }
+
+            if(pid == 0){
+                if(execlp(args[i], args[i], NULL) == -1){
+                  err(1, "Could not execute command");
+                }
+            }
+
+            int status;
+            int child = wait(&status);
+
+            if(child == -1){
+                fail++;
+                continue;
+            }
+
+            if(!WIFEXITED(status)){
+                fail++;
+            }
+            else if(WEXITSTATUS(status) != 0){
+                fail++;
+            }
+            else{
+                success++;
+            }
+        }
+
+        char buff[100];
+        int size = snprintf(buff, sizeof(buff), "Success: %d\nFailure: %d\n", success, fail);
+        if(write(1, buff,size) == -1){
+            err(1, "Couldnt write");
+        }
+        exit(0);
+}
