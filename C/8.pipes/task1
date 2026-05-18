@@ -1,0 +1,50 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <err.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+
+int main(int argc, char* args[]){
+    if(argc != 2){
+        errx(1,"Invalid arguments.\n");
+    }
+
+    int fd = open(args[1], O_CREAT | O_TRUNC | O_WRONLY , 0644);
+    if(fd == -1) {
+        err(1, "Couldnt open file");
+    }
+    char parent[] = "foo\n";
+    char child[]= "bar\n";
+
+    if(write(fd, parent, 2) != 2){
+        err(1, "Couldnt write parent");
+    }
+
+    int pid = fork();
+
+    if(pid == -1) {
+        err(1, "Couldnt fork");
+    }
+
+    if (pid == 0) {
+        if( write(fd, child, 4) != 4) {
+            err(1, "Error while writing child");
+        }
+        close(fd);
+        exit(0);
+    }
+
+    int status;
+    pid_t child_pid = wait(&status);
+
+    if(!WIFEXITED(status) || WEXITSTATUS(status)){
+        err(1, "Invalid process");
+    }
+
+    if( write(fd,parent+2, 2) != 2){
+        err(1, "Coudlnt write");
+    }
+
+    close(fd);
+    exit(0);
+}

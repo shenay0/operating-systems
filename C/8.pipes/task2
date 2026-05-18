@@ -1,0 +1,46 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <err.h>
+#include <sys/wait.h>
+#include <string.h>
+
+void work(char* args, int fd){
+
+    int pid = fork();
+    if(pid == -1){
+        err(1,"Couldnt fork");
+    }
+
+    if(pid == 0){
+        if(execlp(args,args,NULL) == -1){
+            err(1,"Couldnt execute command.\n");
+        }
+    }
+
+    int status;
+    pid_t child = wait(&status);
+
+    if(!WIFEXITED(status) || WEXITSTATUS(status) != 0){
+        //do nothing, the message is already sent
+    }
+    else{
+        write(fd, args, strlen(args));
+    }
+}
+
+int main(int argc, char* args[]){
+    if(argc != 4){
+        errx(1,"Invalid arguments");
+    }
+
+    int fd = open(args[3], O_CREAT|O_TRUNC|O_WRONLY,0644);
+    if(fd == -1){
+        err(1,"Couldnt open file");
+    }
+
+    for(int i = 1; i <=2;i++){
+        work(args[i], fd);
+    }
+    exit(0);
+}
