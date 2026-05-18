@@ -1,0 +1,39 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <err.h>
+#include <sys/wait.h>
+#include <string.h>
+
+int main(int argc, char* args[]){
+    if(argc != 2){
+        errx(1, "invalid args");
+    }
+
+    int pfd[2];
+
+    if(pipe(pfd) == -1) { err(1, "Pipe issue."); }
+
+    int pid = fork();
+
+    if(pid == -1) { err(1, "Fork issue"); }
+
+    if(pid == 0) {
+        close(pfd[1]);
+
+        dup2(pfd[0], 0);
+        close(pfd[0]);
+//        sleep(5);
+        if (execlp("wc", "wc", "-c", NULL) == -1) {
+            err(1, "Could not exec.");
+        }
+
+        exit(0);
+    }
+
+    close(pfd[0]);
+    write(pfd[1], args[1], strlen(args[1]));
+    close(pfd[1]);
+    wait(NULL);
+    exit(0);
+}
+
