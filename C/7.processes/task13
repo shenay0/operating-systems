@@ -1,0 +1,54 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <err.h>
+#include <sys/wait.h>
+#include <stdio.h>
+
+
+void success(int child){
+        char buff[100];
+        int size = snprintf(buff, sizeof(buff), "Pid: %d\n", child);
+        write(1, buff,size);
+}
+
+int main(int argc, char* args[]){
+    if(argc != 3) {
+        errx(1, "Invalid arguments.");
+    }
+
+    int fail = 0;
+
+    for(int i = 1; i <= 2; i++){
+        int pid = fork();
+
+        if(pid == -1) {
+            err(1,"Couldnt fork.");
+        }
+
+        if(pid == 0){
+            if(execlp(args[i], args[i], NULL) == -1){
+                err(1, "Unsuccessful.\n");
+            }
+        }
+    }
+
+    int status;
+    int child1 = wait(&status);
+    if(!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+        fail++;
+    }
+    else{
+        success(child1);
+    }
+
+    int child2 = wait(&status);
+    if(fail == 1 && (!WIFEXITED(status) || WEXITSTATUS(status) != 0)){
+        char buff[] = "-1";
+        write(1, buff, sizeof(buff));
+    }
+    else if (fail == 1){
+        success(child2);
+    }
+
+    exit(0);
+}
